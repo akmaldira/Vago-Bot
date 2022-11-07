@@ -106,9 +106,14 @@ const getMessageById = async (gmail, messageId) => {
                     reject(err);
                     return;
                 }
-                const buff = Buffer.from(res.data.payload.body.data, "base64");
-                const str = buff.toString("utf-8");
-                resolve(str);
+                var buff;
+                try {
+                    buff = Buffer.from(res.data.payload.body.data, "base64");
+                    const str = buff.toString("utf-8");
+                    resolve(str);
+                } catch (err) {
+                    resolve('error')
+                }
             }
         );
     });
@@ -183,7 +188,7 @@ async function main(auth) {
 
     try{
 
-        const emailListDotTrick = await updateEmails('akmaldira.a');
+        const emailListDotTrick = await updateEmails('akmalgaming74');
         
         for (let index = 0; index < emailListDotTrick.length; index++) {
             const element = emailListDotTrick[index];
@@ -193,17 +198,25 @@ async function main(auth) {
                 console.log(`OTP berhasil terkirim`)
                 console.log('Menunggu OTP')
     
-                await delay(5000)
+                await delay(3000)
                 const gmail = google.gmail({ version: "v1", auth });
-                const messageId = await getLatestMessageId(gmail, element);
-                var message = await getMessageById(gmail, messageId);
-                message = message.split('<strong> ')[1];
-                message = message.split('</strong>')[0];
-                const verify = await verifyOTP(element, message, '9d27fe45');
-                if (verify.message === 'success') {
-                    console.log('Success');
-                } else {
-                    console.log('Fail');
+                try {
+                    const messageId = await getLatestMessageId(gmail, element);
+                    var message = await getMessageById(gmail, messageId);
+                    if (message === 'error') {
+                        console.log('error');
+                    } else {
+                        message = message.split('<strong> ')[1];
+                        message = message.split('</strong>')[0];
+                        const verify = await verifyOTP(element, message, '9d27fe45');
+                        if (verify.message === 'success') {
+                            console.log('Success');
+                        } else {
+                            console.log('Fail');
+                        }
+                    }
+                } catch (err) {
+                    console.log('Error');
                 }
             } else {
                 console.log('error');
